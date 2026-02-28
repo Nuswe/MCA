@@ -1,0 +1,5 @@
+{
+  "name": "MCA Exam Finder",
+  "description": "Search and find exam dates and times for Malawi College of Accountancy courses based on the 2025-2026 academic calendar.",
+  "requestFramePermissions": []
+}
