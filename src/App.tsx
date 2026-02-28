@@ -153,6 +153,7 @@ export default function App() {
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setShowRemindersPortal(true)}
+                aria-label={`Open Alerts Portal. You have ${reminders.length} active reminders.`}
                 className="relative p-2 border border-[#141414] rounded-full hover:bg-[#141414] hover:text-[#E4E3E0] transition-all group"
               >
                 {reminders.length > 0 ? <BellRing className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
@@ -170,6 +171,7 @@ export default function App() {
                   }
                   setShowFullTimetable(!showFullTimetable);
                 }}
+                aria-label={showFullTimetable ? "Close full timetable view" : "Open full timetable view"}
                 className="flex items-center gap-2 px-4 py-2 border border-[#141414] rounded-full text-xs font-mono uppercase hover:bg-[#141414] hover:text-[#E4E3E0] transition-all"
               >
                 {showFullTimetable ? <X className="w-3 h-3" /> : <List className="w-3 h-3" />}
@@ -194,18 +196,20 @@ export default function App() {
             >
               {/* Search Bar */}
               <section className="mb-12 relative" ref={searchRef}>
-                <form onSubmit={handleSearch} className="relative group">
+                <form onSubmit={handleSearch} className="relative group" role="search">
                   <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => query.length >= 2 && setShowHints(true)}
                     placeholder="Search module code (e.g. IBM114, ACC, Accounting...)"
+                    aria-label="Search for an exam by module code or course name"
                     className="w-full bg-transparent border-b-2 border-[#141414] py-4 pr-12 text-2xl md:text-4xl font-serif italic focus:outline-none placeholder:opacity-20 transition-all"
                   />
                   <button 
                     type="submit"
                     disabled={loading}
+                    aria-label="Submit search"
                     className="absolute right-0 top-1/2 -translate-y-1/2 p-2 hover:scale-110 transition-transform disabled:opacity-30"
                   >
                     {loading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Search className="w-8 h-8" />}
@@ -241,6 +245,7 @@ export default function App() {
                         <button
                           key={hint}
                           onClick={() => handleSearch(hint)}
+                          aria-label={`Search for module ${hint}`}
                           className="w-full text-left px-4 py-3 hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors flex items-center justify-between group"
                         >
                           <span className="font-mono text-lg">{hint}</span>
@@ -260,10 +265,11 @@ export default function App() {
                   className="mb-8 flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 p-4 border border-[#141414]/10 rounded-lg bg-[#141414]/5"
                 >
                   <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-                    <label className="text-[10px] font-mono uppercase opacity-50">Exam Type</label>
+                    <label id="exam-type-label" className="text-[10px] font-mono uppercase opacity-50">Exam Type</label>
                     <select 
                       value={examTypeFilter}
                       onChange={(e) => setExamTypeFilter(e.target.value as any)}
+                      aria-labelledby="exam-type-label"
                       className="bg-transparent border-b border-[#141414] py-1 text-sm font-mono focus:outline-none cursor-pointer w-full"
                     >
                       <option value="All">All Types</option>
@@ -273,21 +279,23 @@ export default function App() {
                   </div>
 
                   <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-                    <label className="text-[10px] font-mono uppercase opacity-50">From Date</label>
+                    <label id="start-date-label" className="text-[10px] font-mono uppercase opacity-50">From Date</label>
                     <input 
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
+                      aria-labelledby="start-date-label"
                       className="bg-transparent border-b border-[#141414] py-1 text-sm font-mono focus:outline-none cursor-pointer w-full"
                     />
                   </div>
 
                   <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-                    <label className="text-[10px] font-mono uppercase opacity-50">To Date</label>
+                    <label id="end-date-label" className="text-[10px] font-mono uppercase opacity-50">To Date</label>
                     <input 
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
+                      aria-labelledby="end-date-label"
                       className="bg-transparent border-b border-[#141414] py-1 text-sm font-mono focus:outline-none cursor-pointer w-full"
                     />
                   </div>
@@ -344,6 +352,14 @@ export default function App() {
                           }}
                           whileTap={{ scale: 0.995 }}
                           onClick={() => window.open(generateGoogleCalendarUrl(exam), '_blank')}
+                          aria-label={`Exam details for ${exam.courseName} (${exam.courseCode}). Scheduled on ${new Date(exam.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} at ${exam.time}. Click to add to Google Calendar.`}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              window.open(generateGoogleCalendarUrl(exam), '_blank');
+                            }
+                          }}
                           transition={{ 
                             delay: idx * 0.05,
                             x: { type: "spring", stiffness: 300, damping: 20 },
@@ -396,6 +412,8 @@ export default function App() {
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={(e) => toggleReminder(e, exam)}
+                              role="button"
+                              aria-label={reminders.some(r => r.courseCode === exam.courseCode && r.date === exam.date) ? `Remove reminder for ${exam.courseCode}` : `Set reminder for ${exam.courseCode}`}
                               className={cn(
                                 "flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 md:py-1.5 border rounded-md text-[10px] font-mono uppercase transition-all shadow-sm hover:shadow-md",
                                 reminders.some(r => r.courseCode === exam.courseCode && r.date === exam.date)
@@ -410,6 +428,8 @@ export default function App() {
                             <motion.div
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
+                              role="button"
+                              aria-label={`Add ${exam.courseCode} exam to Google Calendar`}
                               className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 md:py-1.5 border border-[#141414] group-hover:border-[#E4E3E0] rounded-md text-[10px] font-mono uppercase hover:bg-[#E4E3E0] hover:text-[#141414] transition-all shadow-sm hover:shadow-md"
                             >
                               <CalendarPlus className="w-3 h-3" />
@@ -498,6 +518,7 @@ export default function App() {
                                 <button 
                                   key={mod} 
                                   onClick={() => handleSearch(mod)}
+                                  aria-label={`Search for ${mod} exam details`}
                                   className="px-3 py-1.5 bg-[#141414] text-[#E4E3E0] text-[11px] font-mono rounded-md shadow-sm hover:bg-emerald-600 transition-colors"
                                 >
                                   {mod}
@@ -555,6 +576,7 @@ export default function App() {
                                             key={mod} 
                                             whileHover={{ scale: 1.05 }}
                                             onClick={() => handleSearch(mod)}
+                                            aria-label={`Search for ${mod} exam details`}
                                             className="px-2 py-2 border border-[#141414]/10 text-[11px] font-mono rounded-lg text-center bg-white/50 hover:bg-[#141414] hover:text-[#E4E3E0] hover:border-[#141414] transition-all shadow-sm"
                                           >
                                             {mod}
@@ -616,15 +638,19 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="alerts-portal-title"
               className="bg-[#E4E3E0] w-full max-w-4xl max-h-[80vh] overflow-hidden rounded-3xl shadow-2xl flex flex-col"
             >
               <div className="p-6 md:p-8 border-b border-[#141414]/10 flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-serif italic">Alerts Portal</h2>
+                  <h2 id="alerts-portal-title" className="text-3xl font-serif italic">Alerts Portal</h2>
                   <p className="text-xs font-mono opacity-50 uppercase tracking-widest mt-1">Your Scheduled Exam Reminders</p>
                 </div>
                 <button 
                   onClick={() => setShowRemindersPortal(false)}
+                  aria-label="Close Alerts Portal"
                   className="p-2 hover:bg-[#141414]/5 rounded-full transition-colors"
                 >
                   <X className="w-6 h-6" />
@@ -681,6 +707,7 @@ export default function App() {
                           </div>
                           <button 
                             onClick={(e) => toggleReminder(e, exam)}
+                            aria-label={`Remove reminder for ${exam.courseName}`}
                             className="text-[10px] font-mono uppercase text-red-600 hover:underline text-left md:text-right mt-2"
                           >
                             Remove Reminder
